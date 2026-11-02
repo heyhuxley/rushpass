@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { Event, Prisma } from '../../generated/prisma/client.js';
-import { UpdateEventDto } from './dto/update-event.dto.js';
 
 @Injectable()
 export class EventsService {
@@ -58,20 +57,21 @@ export class EventsService {
     return event;
   }
 
-  // async findPublished(id: string): Promise<Event> {
-  //   const event = await this.prisma.event.findUnique({
-  //     where: {
-  //       id,
-  //     },
-  //   });
-  //
-  //   if (!event) throw new NotFoundException('Event does not exist');
-  //
-  //   return event;
-  // }
-
-  update(id: string, updateEventDto: UpdateEventDto) {
-    return `This action updates a #${id} event`;
+  async update(id: string, organizerId: string, data: Prisma.EventUpdateInput) {
+    try {
+      return await this.prisma.event.update({
+        where: { id, organizerId },
+        data,
+      });
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2025'
+      ) {
+        throw new NotFoundException('Event does not exist');
+      }
+      throw err;
+    }
   }
 
   async remove(id: string, organizerId: string): Promise<Event | undefined> {

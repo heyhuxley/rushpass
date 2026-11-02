@@ -67,8 +67,12 @@ export class EventsController {
   }
 
   @Patch('me/events/:id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventsService.update(id, updateEventDto);
+  update(
+    @CurrentUser('id', new ParseUUIDPipe()) organizerId: string,
+    @Param('id') id: string,
+    @Body() updateEventDto: UpdateEventDto,
+  ): Promise<Event> {
+    return this.eventsService.update(id, organizerId, updateEventDto);
   }
 
   @Delete('me/events/:id')
