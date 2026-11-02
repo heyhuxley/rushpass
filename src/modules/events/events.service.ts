@@ -48,23 +48,32 @@ export class EventsService {
     });
   }
 
-  async findOne(id: string, organizerId: string): Promise<Event> {
+  async findOne(where: Prisma.EventWhereUniqueInput): Promise<Event> {
     const event = await this.prisma.event.findUnique({
-      where: {
-        id,
-        organizerId,
-      },
+      where,
     });
 
     if (!event) throw new NotFoundException('Event does not exist');
 
     return event;
   }
-  
-  update(id: number, updateEventDto: UpdateEventDto) {
+
+  // async findPublished(id: string): Promise<Event> {
+  //   const event = await this.prisma.event.findUnique({
+  //     where: {
+  //       id,
+  //     },
+  //   });
+  //
+  //   if (!event) throw new NotFoundException('Event does not exist');
+  //
+  //   return event;
+  // }
+
+  update(id: string, updateEventDto: UpdateEventDto) {
     return `This action updates a #${id} event`;
   }
-  
+
   async remove(id: string, organizerId: string): Promise<Event | undefined> {
     try {
       return await this.prisma.event.delete({

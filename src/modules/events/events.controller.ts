@@ -3,7 +3,9 @@ import {
   Controller,
   Delete,
   Get,
-  Param, ParseUUIDPipe, Patch,
+  Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -22,7 +24,7 @@ import { UpdateEventDto } from './dto/update-event.dto.js';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  @Post('me/events/create')
+  @Post('me/events')
   @ResponseMessage('Event created')
   create(
     @Body() createEventDto: CreateEventDto,
@@ -47,18 +49,26 @@ export class EventsController {
     return this.eventsService.findMine({ where: { organizerId } });
   }
 
+  @Get('events/:id')
+  @UseGuards(RoleGuard)
+  @Roles(['admin'])
+  @ResponseMessage('Event found')
+  findPublished(@Param('id') id: string): Promise<Event> {
+    return this.eventsService.findOne({ id });
+  }
+
   @Get('me/events/:id')
   @ResponseMessage('Event found')
-  findOne(
+  findOwned(
     @CurrentUser('id', new ParseUUIDPipe()) organizerId: string,
     @Param('id') id: string,
   ): Promise<Event> {
-    return this.eventsService.findOne(id, organizerId);
+    return this.eventsService.findOne({ id, organizerId });
   }
 
-  @Patch(':id')
+  @Patch('me/events/:id')
   update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventsService.update(+id, updateEventDto);
+    return this.eventsService.update(id, updateEventDto);
   }
 
   @Delete('me/events/:id')
