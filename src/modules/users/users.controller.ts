@@ -71,6 +71,8 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Roles(['admin'])
+  @UseGuards(RoleGuard)
   deleteUser(@Param('id', new ParseUUIDPipe()) id: string): Promise<UserRT> {
     return this.usersService.delete({ id });
   }
