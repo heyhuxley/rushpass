@@ -10,7 +10,7 @@ async function bootstrap() {
   app.set('trust proxy', 'loopback');
 
   app.setGlobalPrefix('/api');
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
   app.useGlobalInterceptors(new TransformInterceptor(app.get(Reflector)));
 
   app.enableShutdownHooks();
