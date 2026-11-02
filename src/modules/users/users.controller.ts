@@ -36,7 +36,7 @@ export class UsersController {
     return user ?? [];
   }
 
-  @Patch('me/update')
+  @Patch('me')
   async update(
     @CurrentUser('id', new ParseUUIDPipe()) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -45,7 +45,7 @@ export class UsersController {
     return this.usersService.update({ id }, { firstName, lastName });
   }
 
-  @Delete('me/delete')
+  @Delete('me')
   delete(@CurrentUser('id', new ParseUUIDPipe()) id: string): Promise<UserRT> {
     return this.usersService.delete({ id });
   }
@@ -57,5 +57,21 @@ export class UsersController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<UserRT | null> {
     return this.usersService.user({ id });
+  }
+
+  @Patch(':id')
+  @Roles(['admin'])
+  @UseGuards(RoleGuard)
+  async updateUser(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserRT | null> {
+    const { firstName, lastName } = updateUserDto;
+    return this.usersService.update({ id }, { firstName, lastName });
+  }
+
+  @Delete(':id')
+  deleteUser(@Param('id', new ParseUUIDPipe()) id: string): Promise<UserRT> {
+    return this.usersService.delete({ id });
   }
 }

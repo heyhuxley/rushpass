@@ -87,8 +87,8 @@ export class UsersService {
         err instanceof Prisma.PrismaClientKnownRequestError &&
         err.code === 'P2025'
       )
-        throw new ConflictException('Already verified', {
-          errorCode: 'ALREADY_VERIFIED',
+        throw new NotFoundException('User not found', {
+          errorCode: 'UPDATE_FAILED',
         });
       throw err;
     }
