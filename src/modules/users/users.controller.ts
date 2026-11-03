@@ -66,8 +66,7 @@ export class UsersController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserRT | null> {
-    const { firstName, lastName } = updateUserDto;
-    return this.usersService.update({ id }, { firstName, lastName });
+    return this.usersService.update({ id }, updateUserDto);
   }
 
   @Delete(':id')

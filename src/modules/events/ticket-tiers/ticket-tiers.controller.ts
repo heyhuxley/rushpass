@@ -1,15 +1,31 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { TicketTiersService } from './ticket-tiers.service.js';
 import { CreateTicketTierDto } from './dto/create-ticket-tier.dto.js';
 import { UpdateTicketTierDto } from './dto/update-ticket-tier.dto.js';
+import { Public } from '@nestjs/authentication';
+import { SkipThrottle } from '@nestjs/throttler';
 
-@Controller('ticket-tiers')
+@Public()
+@SkipThrottle()
+@Controller('events/:eventId/ticket-tiers')
 export class TicketTiersController {
   constructor(private readonly ticketTiersService: TicketTiersService) {}
 
   @Post()
-  create(@Body() createTicketTierDto: CreateTicketTierDto) {
-    return this.ticketTiersService.create(createTicketTierDto);
+  create(
+    @Param('eventId', new ParseUUIDPipe()) eventId: string,
+    @Body() createTicketTierDto: CreateTicketTierDto,
+  ) {
+    return this.ticketTiersService.create({ ...createTicketTierDto, eventId });
   }
 
   @Get()
@@ -23,7 +39,10 @@ export class TicketTiersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTicketTierDto: UpdateTicketTierDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateTicketTierDto: UpdateTicketTierDto,
+  ) {
     return this.ticketTiersService.update(+id, updateTicketTierDto);
   }
 

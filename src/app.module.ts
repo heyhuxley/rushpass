@@ -22,7 +22,6 @@ import { EmailVerificationMail } from './modules/notifications/email-verificatio
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { mailTransport } from './mail-transport.js';
 import { EventsModule } from './modules/events/events.module.js';
-import { TicketTiersModule } from './modules/ticket-tiers/ticket-tiers.module.js';
 
 @Module({
   imports: [
@@ -73,7 +72,6 @@ import { TicketTiersModule } from './modules/ticket-tiers/ticket-tiers.module.js
     }),
     NotificationsModule,
     EventsModule,
-    TicketTiersModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailVerificationMail],
