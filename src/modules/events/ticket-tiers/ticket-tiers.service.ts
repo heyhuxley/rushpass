@@ -15,7 +15,9 @@ export class TicketTiersService {
         err instanceof Prisma.PrismaClientKnownRequestError &&
         err.code === 'P2003'
       ) {
-        throw new NotFoundException('Failed to create ticket tier: Event not found');
+        throw new NotFoundException(
+          'Failed to create ticket tier: Event not found',
+        );
       }
       throw err;
     }

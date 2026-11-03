@@ -13,6 +13,7 @@ import { CreateTicketTierDto } from './dto/create-ticket-tier.dto.js';
 import { UpdateTicketTierDto } from './dto/update-ticket-tier.dto.js';
 import { Public } from '@nestjs/authentication';
 import { SkipThrottle } from '@nestjs/throttler';
+import { ResponseMessage } from '../../../common/decorators/response-message.decorator.js';
 
 @Public()
 @SkipThrottle()
@@ -21,6 +22,7 @@ export class TicketTiersController {
   constructor(private readonly ticketTiersService: TicketTiersService) {}
 
   @Post()
+  @ResponseMessage('Ticket tier created successfully')
   create(
     @Param('eventId', new ParseUUIDPipe()) eventId: string,
     @Body() createTicketTierDto: CreateTicketTierDto,
