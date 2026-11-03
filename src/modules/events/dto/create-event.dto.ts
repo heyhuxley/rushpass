@@ -25,4 +25,8 @@ export class CreateEventDto {
   @IsDate()
   @Type(() => Date)
   startTime: string;
+
+  @IsDate()
+  @Type(() => Date)
+  publishAt: string;
 }

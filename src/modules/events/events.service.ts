@@ -91,4 +91,8 @@ export class EventsService {
       }
     }
   }
+
+  publishDue() {
+    // return this.prisma.event.updateMany({})
+  }
 }

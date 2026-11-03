@@ -39,6 +39,7 @@ model Event {
   startTime    DateTime     @map("start_time")
   organizer    User         @relation(fields: [organizerId], references: [id], onDelete: Restrict)
   organizerId  String       @map("organizer_id")
+  publishAt    DateTime?    @map("publish_at")
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
   ticketTiers  TicketTier[]
