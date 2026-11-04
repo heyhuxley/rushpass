@@ -46,11 +46,12 @@ export class TicketTiersController {
   }
 
   @Patch(':id')
+  @ResponseMessage('Ticket tier updated successfully')
   update(
     @Param('id') id: string,
     @Body() updateTicketTierDto: UpdateTicketTierDto,
   ) {
-    return this.ticketTiersService.update(+id, updateTicketTierDto);
+    return this.ticketTiersService.update({ id }, updateTicketTierDto);
   }
 
   @Delete(':id')

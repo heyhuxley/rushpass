@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UpdateTicketTierDto } from './dto/update-ticket-tier.dto.js';
-import { Prisma } from '../../../generated/prisma/client.js';
+import { Prisma, TicketTier } from '../../../generated/prisma/client.js';
 import { PrismaService } from '../../../infra/prisma/prisma.service.js';
 
 @Injectable()
 export class TicketTiersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.TicketTierUncheckedCreateInput) {
+  async create(
+    data: Prisma.TicketTierUncheckedCreateInput,
+  ): Promise<TicketTier> {
     try {
       return await this.prisma.ticketTier.create({ data });
     } catch (err) {
@@ -23,13 +24,13 @@ export class TicketTiersService {
     }
   }
 
-  findAll(eventId: string) {
+  async findAll(eventId: string): Promise<TicketTier[]> {
     return this.prisma.ticketTier.findMany({
       where: { eventId },
     });
   }
 
-  async findOne(where: Prisma.TicketTierWhereUniqueInput) {
+  async findOne(where: Prisma.TicketTierWhereUniqueInput): Promise<TicketTier> {
     const event = await this.prisma.ticketTier.findUnique({
       where,
     });
@@ -39,11 +40,17 @@ export class TicketTiersService {
     return event;
   }
 
-  update(id: number, updateTicketTierDto: UpdateTicketTierDto) {
-    return `This action updates a #${id} ticketTier`;
+  async update(
+    where: Prisma.TicketTierWhereUniqueInput,
+    data: Prisma.TicketTierUpdateInput,
+  ): Promise<TicketTier> {
+    return this.prisma.ticketTier.update({
+      where,
+      data,
+    });
   }
 
-  async remove(where: Prisma.TicketTierWhereUniqueInput) {
+  async remove(where: Prisma.TicketTierWhereUniqueInput): Promise<TicketTier> {
     try {
       return await this.prisma.ticketTier.delete({
         where,
