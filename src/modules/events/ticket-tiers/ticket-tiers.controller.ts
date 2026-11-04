@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, } from '@nestjs/common';
 import { TicketTiersService } from './ticket-tiers.service.js';
 import { CreateTicketTierDto } from './dto/create-ticket-tier.dto.js';
 import { UpdateTicketTierDto } from './dto/update-ticket-tier.dto.js';
