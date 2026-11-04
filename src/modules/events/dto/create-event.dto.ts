@@ -28,5 +28,6 @@ export class CreateEventDto {
 
   @IsDate()
   @Type(() => Date)
-  publishAt: string;
+  @IsOptional()
+  publishAt?: string;
 }

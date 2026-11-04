@@ -36,11 +36,11 @@ export class OrdersService {
     let totalPrice = 0;
     const items = orderItems.items.map(({ ticketTierId, quantity }) => {
       const unitPrice = byId.get(ticketTierId)?.price;
-      if (typeof unitPrice !== 'number') {
-        throw new BadRequestException('Invalid ticket tier specified.');
+      if (!unitPrice) {
+        throw new BadRequestException('Invalid ticket price specified.');
       }
 
-      totalPrice += unitPrice * quantity;
+      totalPrice += Number(unitPrice) * quantity;
 
       return {
         ticketTierId,
@@ -61,7 +61,7 @@ export class OrdersService {
       },
       include: {
         orderItems: true,
-      }
+      },
     });
   }
 }

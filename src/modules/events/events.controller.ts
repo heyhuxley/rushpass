@@ -25,6 +25,8 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post('me/events')
+  @UseGuards(RoleGuard)
+  @Roles(['ORGANIZER', 'ADMIN'])
   @ResponseMessage('Event created')
   create(
     @Body() createEventDto: CreateEventDto,
@@ -34,8 +36,6 @@ export class EventsController {
   }
 
   @Get('events/all')
-  @UseGuards(RoleGuard)
-  @Roles(['admin'])
   @ResponseMessage('All events fetched')
   findAll(): Promise<Event[]> {
     return this.eventsService.findAll({});
@@ -60,13 +60,15 @@ export class EventsController {
 
   @Get('events/:id')
   @UseGuards(RoleGuard)
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   @ResponseMessage('Event found')
   findPublished(@Param('id') id: string): Promise<Event> {
     return this.eventsService.findOne({ id });
   }
 
   @Get('me/events/:id')
+  @UseGuards(RoleGuard)
+  @Roles(['ORGANIZER', 'ADMIN'])
   @ResponseMessage('Event found')
   findOwned(
     @CurrentUser('id', new ParseUUIDPipe()) organizerId: string,
@@ -76,6 +78,8 @@ export class EventsController {
   }
 
   @Patch('me/events/:id')
+  @UseGuards(RoleGuard)
+  @Roles(['ORGANIZER', 'ADMIN'])
   update(
     @CurrentUser('id', new ParseUUIDPipe()) organizerId: string,
     @Param('id') id: string,
@@ -85,6 +89,8 @@ export class EventsController {
   }
 
   @Delete('me/events/:id')
+  @UseGuards(RoleGuard)
+  @Roles(['ORGANIZER', 'ADMIN'])
   @ResponseMessage('Event deleted')
   remove(
     @CurrentUser('id', new ParseUUIDPipe()) organizerId: string,
