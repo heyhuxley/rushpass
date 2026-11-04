@@ -98,6 +98,22 @@ model OrderItem {
   unitPrice    Decimal    @map("unit_price") @db.Decimal(10, 2)
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
+  tickets      Ticket[]
 
   @@map("order_items")
+}
+
+model Ticket {
+  id          String       @id @default(uuid(7))
+  code        String       @unique @db.VarChar(10)
+  status      TicketStatus @default(VALID)
+  checkedInAt DateTime?    @map("checked_in_at")
+  OrderItem   OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  orderItemId String       @map("order_item_id")
+}
+
+enum TicketStatus {
+  VALID
+  USED
+  CANCELLED
 }
