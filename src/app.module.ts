@@ -23,6 +23,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { mailTransport } from './mail-transport.js';
 import { EventsModule } from './modules/events/events.module.js';
 import { ScheduleModule } from '@nestjs/schedule';
+import { OrdersModule } from './modules/orders/orders.module.js';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     NotificationsModule,
     EventsModule,
     ScheduleModule.forRoot(),
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailVerificationMail],
