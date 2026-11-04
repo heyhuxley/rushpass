@@ -12,6 +12,6 @@ export class OrdersController {
     @CurrentUser('id', new ParseUUIDPipe()) userId: string,
     @Body() orderItems: CreateOrderDto,
   ) {
-    return this.ordersService.createOrder({ userId, orderItems });
+    return this.ordersService.create(userId, { items: orderItems.items });
   }
 }
