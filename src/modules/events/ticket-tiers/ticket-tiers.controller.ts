@@ -27,7 +27,7 @@ export class TicketTiersController {
     @Param('eventId', new ParseUUIDPipe()) eventId: string,
     @Body() createTicketTierDto: CreateTicketTierDto,
   ) {
-    return this.ticketTiersService.create({ ...createTicketTierDto, eventId });
+    return this.ticketTiersService.create({ ...createTicketTierDto, eventId, available: createTicketTierDto.capacity });
   }
 
   @Get()
