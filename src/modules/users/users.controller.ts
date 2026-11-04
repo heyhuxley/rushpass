@@ -24,7 +24,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('all')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   @UseGuards(RoleGuard)
   @ResponseMessage('All users retrieved')
   users(): Promise<UserRT[]> {
@@ -51,7 +51,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   @UseGuards(RoleGuard)
   getSingle(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -60,7 +60,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   @UseGuards(RoleGuard)
   async updateUser(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -70,7 +70,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles(['admin'])
+  @Roles(['ADMIN'])
   @UseGuards(RoleGuard)
   deleteUser(@Param('id', new ParseUUIDPipe()) id: string): Promise<UserRT> {
     return this.usersService.delete({ id });
