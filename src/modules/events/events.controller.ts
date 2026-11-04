@@ -49,6 +49,15 @@ export class EventsController {
     return this.eventsService.findMine({ where: { organizerId } });
   }
 
+  @Get('events/:eventId/cancel')
+  @ResponseMessage('Event canceled')
+  cancelEvent(
+    @Param('eventId') eventId: string,
+    @CurrentUser('id', new ParseUUIDPipe()) organizerId: string,
+  ) {
+    return this.eventsService.cancelEvent(eventId, organizerId);
+  }
+
   @Get('events/:id')
   @UseGuards(RoleGuard)
   @Roles(['admin'])

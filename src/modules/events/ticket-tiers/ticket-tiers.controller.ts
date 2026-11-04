@@ -31,13 +31,18 @@ export class TicketTiersController {
   }
 
   @Get()
-  findAll() {
-    return this.ticketTiersService.findAll();
+  @ResponseMessage('Ticket tiers retrieved successfully')
+  findAll(@Param('eventId', new ParseUUIDPipe()) eventId: string) {
+    return this.ticketTiersService.findAll(eventId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ticketTiersService.findOne(+id);
+  @ResponseMessage('Ticket tier retrieved successfully')
+  findOne(
+    @Param('eventId', new ParseUUIDPipe()) eventId: string,
+    @Param('id') id: string,
+  ) {
+    return this.ticketTiersService.findOne({ id, eventId });
   }
 
   @Patch(':id')
@@ -49,7 +54,10 @@ export class TicketTiersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ticketTiersService.remove(+id);
+  remove(
+    @Param('eventId', new ParseUUIDPipe()) eventId: string,
+    @Param('id') id: string,
+  ) {
+    return this.ticketTiersService.remove({ id, eventId });
   }
 }

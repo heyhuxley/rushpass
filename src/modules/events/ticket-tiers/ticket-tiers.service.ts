@@ -23,19 +23,39 @@ export class TicketTiersService {
     }
   }
 
-  findAll() {
-    return `This action returns all ticketTiers`;
+  findAll(eventId: string) {
+    return this.prisma.ticketTier.findMany({
+      where: { eventId },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} ticketTier`;
+  async findOne(where: Prisma.TicketTierWhereUniqueInput) {
+    const event = await this.prisma.ticketTier.findUnique({
+      where,
+    });
+    if (!event) {
+      throw new NotFoundException('Ticket tier not found');
+    }
+    return event;
   }
 
   update(id: number, updateTicketTierDto: UpdateTicketTierDto) {
     return `This action updates a #${id} ticketTier`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} ticketTier`;
+  async remove(where: Prisma.TicketTierWhereUniqueInput) {
+    try {
+      return await this.prisma.ticketTier.delete({
+        where,
+      });
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2025'
+      ) {
+        throw new NotFoundException('Ticket tier not found');
+      }
+      throw err;
+    }
   }
 }

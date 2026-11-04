@@ -5,7 +5,10 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class EventsService {
-  constructor(private readonly prisma: PrismaService, private readonly logger: Logger) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: Logger,
+  ) {}
 
   async create(
     data: Prisma.EventUncheckedCreateWithoutOrganizerInput,
@@ -93,6 +96,30 @@ export class EventsService {
     }
   }
 
+  async cancelEvent(
+    id: string,
+    organizerId: string,
+  ): Promise<Event | undefined> {
+    try {
+      return await this.prisma.event.update({
+        where: {
+          id,
+          organizerId,
+          NOT: {
+            status: 'CANCELLED',
+          },
+        },
+        data: {
+          status: 'CANCELLED',
+        },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new NotFoundException('Cannot cancel event');
+      }
+    }
+  }
+
   @Cron(CronExpression.EVERY_MINUTE)
   async publishDue() {
     const result = await this.prisma.event.updateMany({
@@ -119,7 +146,7 @@ export class EventsService {
         },
       },
     });
-    
+
     this.logger.log(`Published ${result.count} event(s)`);
   }
 }
