@@ -33,7 +33,7 @@ export class PaystackClient {
         },
       });
 
-      return response.data;
+      return response.data.data;
     } catch (err) {
       if (err instanceof Error) throw new BadRequestException(err.message);
       throw err;
@@ -41,18 +41,23 @@ export class PaystackClient {
   }
 
   async verify({ reference }: VerifyPaymentInput) {
-    const response = await axios({
-      baseURL: this.baseUrl,
-      url: `/transaction/verify/${reference}`,
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${this.SECRET_KEY}`,
-      },
-      data: {
-        reference,
-      },
-    });
+    try {
+      const response = await axios({
+        baseURL: this.baseUrl,
+        url: `/transaction/verify/${reference}`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${this.SECRET_KEY}`,
+        },
+        data: {
+          reference,
+        },
+      });
 
-    return response.data;
+      return response.data.data;
+    } catch (err) {
+      if (err instanceof Error) throw new BadRequestException(err.message);
+      throw err;
+    }
   }
 }

@@ -107,24 +107,16 @@ export class UsersService {
   }
 
   async testPay() {
-    try {
-      return await this.paystack.initialize({
-        email: 'olakunle@test.com',
-        amountKobo: 10000,
-        reference: 'test-ref-12345678910',
-      });
-    } catch (err) {
-      console.log(err);
-    }
+    return await this.paystack.initialize({
+      email: 'olakunle@test.com',
+      amountKobo: 10000,
+      reference: 'test-ref-1234567891',
+    });
   }
 
   async testVer(reference: string) {
-    try {
-      return await this.paystack.verify({
-        reference,
-      });
-    } catch (err) {
-      console.log(err);
-    }
+    return await this.paystack.verify({
+      reference,
+    });
   }
 }
