@@ -12,6 +12,16 @@ interface OrderItem {
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private generateRef(prefix: string = 'ref') {
+    const timestamp = Date.now().toString(36);
+
+    const randomArray = new Uint32Array(1);
+    crypto.getRandomValues(randomArray);
+    const randomStr = randomArray[0].toString(36).substring(0, 5);
+
+    return `${prefix}-${timestamp}-${randomStr}`.toUpperCase();
+  }
+
   async create(userId: string, orderItems: CreateOrderDto) {
     const ids = orderItems.items.map((item) => item.ticketTierId);
 
@@ -78,10 +88,14 @@ export class OrdersService {
       });
       const itemsToCreate: OrderItem[] = await Promise.all(items);
 
+      const reference = this.generateRef();
+
       return tx.order.create({
         data: {
           userId,
           totalPrice,
+          reference,
+          expiresAt: event.startTime,
           orderItems: {
             createMany: {
               data: itemsToCreate,
@@ -93,35 +107,5 @@ export class OrdersService {
         },
       });
     });
-
-    // const items = orderItems.items.map(({ ticketTierId, quantity }) => {
-    //   const unitPrice = byId.get(ticketTierId)?.price;
-    //   if (!unitPrice) {
-    //     throw new BadRequestException('Invalid ticket price specified.');
-    //   }
-    //
-    //   totalPrice += Number(unitPrice) * quantity;
-    //
-    //   return {
-    //     ticketTierId,
-    //     quantity,
-    //     unitPrice,
-    //   };
-    // });
-    //
-    // return this.prisma.order.create({
-    //   data: {
-    //     userId,
-    //     totalPrice,
-    //     orderItems: {
-    //       createMany: {
-    //         data: items,
-    //       },
-    //     },
-    //   },
-    //   include: {
-    //     orderItems: true,
-    //   },
-    // });
   }
 }

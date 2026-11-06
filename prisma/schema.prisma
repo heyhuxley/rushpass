@@ -75,6 +75,9 @@ model Order {
   userId     String      @map("user_id")
   totalPrice Decimal     @map("total_price") @db.Decimal(10, 2)
   status     OrderStatus @default(PENDING)
+  reference  String?     @db.VarChar(30)
+  paidAt     DateTime?   @map("paid_at")
+  expiresAt  DateTime    @map("expires_at")
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
   orderItems OrderItem[]
