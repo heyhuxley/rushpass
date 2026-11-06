@@ -6,10 +6,14 @@ import {
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { Prisma, User } from '../../generated/prisma/client.js';
 import { UserRT } from './users.types.js';
+import { PaystackClient } from '../../infra/payments/paystack.client.js';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly paystack: PaystackClient,
+  ) {}
 
   async user(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
@@ -76,12 +80,11 @@ export class UsersService {
     try {
       const user = await this.prisma.user.update({
         where: userWhereUniqueInput,
-        data
+        data,
       });
-      
+
       if (!user) throw new NotFoundException('User not found');
       return user;
-      
     } catch (err) {
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
@@ -101,5 +104,27 @@ export class UsersService {
       where: userWhereUniqueInput,
       omit: { passwordHash: true },
     });
+  }
+
+  async testPay() {
+    try {
+      return await this.paystack.initialize({
+        email: 'olakunle@test.com',
+        amountKobo: 10000,
+        reference: 'test-ref-12345678910',
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async testVer(reference: string) {
+    try {
+      return await this.paystack.verify({
+        reference,
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }
 }

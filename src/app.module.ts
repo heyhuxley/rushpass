@@ -24,6 +24,8 @@ import { mailTransport } from './mail-transport.js';
 import { EventsModule } from './modules/events/events.module.js';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OrdersModule } from './modules/orders/orders.module.js';
+import { PaystackClient } from './infra/payments/paystack.client.js';
+import { PaystackModule } from './infra/payments/paystack.module.js';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { OrdersModule } from './modules/orders/orders.module.js';
         JWT_SECRET: z.string().min(64),
         JWT_ISSUER: z.string().startsWith('http'),
         HMAC_SECRET: z.string().min(10),
+        PAYSTACK_BASE_URL: z.string().startsWith('https'),
+        PAYSTACK_SECRET_KEY: z.string().min(36),
       }),
     }),
     AuthenticationModule.forRootAsync({
@@ -76,9 +80,10 @@ import { OrdersModule } from './modules/orders/orders.module.js';
     EventsModule,
     ScheduleModule.forRoot(),
     OrdersModule,
+    PaystackModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailVerificationMail],
+  providers: [AppService, EmailVerificationMail, PaystackClient],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
