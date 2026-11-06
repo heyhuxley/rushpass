@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 interface OrderItem {
   ticketTierId: string;
@@ -106,6 +107,21 @@ export class OrdersService {
           orderItems: true,
         },
       });
+    });
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async cancelPendingOrders() {
+    const result = await this.prisma.order.updateMany({
+      where: {
+        expiresAt: {
+          gte: new Date(),
+        },
+        paidAt: null,
+      },
+      data: {
+        status: 'EXPIRED',
+      },
     });
   }
 }
