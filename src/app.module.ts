@@ -41,6 +41,7 @@ import { StripeModule } from './infra/payments/stripe.module.js';
         JWT_ISSUER: z.string().startsWith('http'),
         HMAC_SECRET: z.string().min(10),
         STRIPE_SECRET_KEY: z.string().min(26),
+        STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
       }),
     }),
     AuthenticationModule.forRootAsync({

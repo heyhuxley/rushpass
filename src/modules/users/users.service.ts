@@ -101,18 +101,4 @@ export class UsersService {
       omit: { passwordHash: true },
     });
   }
-
-  // async testPay() {
-  //   return await this.paystack.initialize({
-  //     email: 'olakunle@test.com',
-  //     amountKobo: 10000,
-  //     reference: 'test-ref-1234567891',
-  //   });
-  // }
-  //
-  // async testVer(reference: string) {
-  //   return await this.paystack.verify({
-  //     reference,
-  //   });
-  // }
 }

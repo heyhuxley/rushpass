@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class StripeClient {
   private readonly stripe: Stripe;
+  private readonly webhookSecret: string;
 
   constructor(config: ConfigService) {
     const stripeKey = config.getOrThrow<string>('STRIPE_SECRET_KEY');
@@ -22,23 +23,31 @@ export class StripeClient {
     ) {
       throw new Error('Non-production environments must use a Stripe test key');
     }
+    this.webhookSecret = config.getOrThrow<string>('STRIPE_WEBHOOK_SECRET');
     this.stripe = new Stripe(stripeKey, { timeout: 1000 });
   }
 
   async createCheckoutSession(input: CreateCheckoutInput) {
     try {
-      const session = await this.stripe.checkout.sessions.create({
-        line_items: input.lines.map((l) => ({
-          quantity: l.quantity,
-          price_data: {
-            currency: input.currency,
-            unit_amount: l.unitAmount,
-            product_data: { name: l.name },
-          },
-        })),
-        mode: 'payment',
-        success_url: input.successUrl,
-      });
+      const session = await this.stripe.checkout.sessions.create(
+        {
+          line_items: input.lines.map((l) => ({
+            quantity: l.quantity,
+            price_data: {
+              currency: input.currency,
+              unit_amount: l.unitAmount,
+              product_data: { name: l.name },
+            },
+          })),
+          mode: 'payment',
+          customer_email: input.email,
+          client_reference_id: input.orderId,
+          metadata: { orderId: input.orderId },
+          success_url: input.successUrl,
+          expires_at: Math.floor(input.expiresAt.getTime() / 1000),
+        },
+        { idempotencyKey: input.reference },
+      );
 
       return { sessionId: session.id, url: session.url };
     } catch (err) {
@@ -67,6 +76,32 @@ export class StripeClient {
               errorCode: err.code,
             });
         }
+      }
+      throw err;
+    }
+  }
+
+  async fulfillCheckout(
+    sessionId: string,
+  ): Promise<Stripe.Checkout.Session | undefined> {
+    return await this.stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items'],
+    });
+  }
+
+  constructWebhookEvent(rawBody: Buffer, signature: string | undefined){
+    if (!signature) throw new BadRequestException('Missing webhook signature');
+    try {
+      return this.stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        this.webhookSecret,
+      );
+    } catch (err) {
+      if (err instanceof Stripe.errors.StripeError) {
+        throw new BadRequestException('Invalid webhook signature', {
+          cause: err.cause,
+        });
       }
       throw err;
     }
