@@ -58,6 +58,7 @@ model TicketTier {
   id         String      @id @default(uuid(7))
   name       String      @db.VarChar(100)
   price      Decimal     @db.Decimal(10, 2)
+  currency   Currency    @default(NGN)
   capacity   Int
   available  Int
   event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -67,6 +68,11 @@ model TicketTier {
   orderItems OrderItem[]
 
   @@map("ticket_tiers")
+}
+
+enum Currency {
+  NGN
+  USD
 }
 
 model Order {

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { StripeClient } from '../../infra/payments/stripe.client.js';
 
 interface OrderItem {
   ticketTierId: string;
@@ -11,7 +12,10 @@ interface OrderItem {
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly stripe: StripeClient,
+  ) {}
 
   private generateRef(prefix: string = 'ref') {
     const timestamp = Date.now().toString(36);
@@ -26,7 +30,7 @@ export class OrdersService {
   async create(userId: string, orderItems: CreateOrderDto) {
     const ids = orderItems.items.map((item) => item.ticketTierId);
 
-    return this.prisma.$transaction(async (tx) => {
+    return await this.prisma.$transaction(async (tx) => {
       const tiers = await tx.ticketTier.findMany({
         where: {
           id: { in: ids },
@@ -91,7 +95,7 @@ export class OrdersService {
 
       const reference = this.generateRef();
 
-      return tx.order.create({
+      const order = await tx.order.create({
         data: {
           userId,
           totalPrice,
@@ -105,8 +109,28 @@ export class OrdersService {
         },
         include: {
           orderItems: true,
+          user: true,
         },
       });
+
+      const appUrl = 'http://localhost:3000/api';
+
+      const { url } = await this.stripe.createCheckoutSession({
+        orderId: order.id,
+        reference: reference,
+        email: order.user.email,
+        currency: tiers[0].currency,
+        lines: order.orderItems.map((item, i) => ({
+          name: `${tiers[i].name} – ${event.title}`,
+          unitAmount: Number(item.unitPrice),
+          quantity: item.quantity,
+        })),
+        successUrl: `${appUrl}/orders/${order.id}/status?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${appUrl}/orders/${order.id}/cancelled`,
+        expiresAt: order.expiresAt,
+      });
+
+      return { orderId: order.id, checkoutUrl: url };
     });
   }
 

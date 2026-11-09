@@ -44,6 +44,7 @@ export class StripeClient {
           client_reference_id: input.orderId,
           metadata: { orderId: input.orderId },
           success_url: input.successUrl,
+          cancel_url: input.cancelUrl,
           expires_at: Math.floor(input.expiresAt.getTime() / 1000),
         },
         { idempotencyKey: input.reference },
@@ -89,7 +90,7 @@ export class StripeClient {
     });
   }
 
-  constructWebhookEvent(rawBody: Buffer, signature: string | undefined){
+  constructWebhookEvent(rawBody: Buffer, signature: string | undefined) {
     if (!signature) throw new BadRequestException('Missing webhook signature');
     try {
       return this.stripe.webhooks.constructEvent(
