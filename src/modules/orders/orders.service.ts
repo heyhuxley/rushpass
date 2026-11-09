@@ -1,8 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { StripeClient } from '../../infra/payments/stripe.client.js';
+import { Prisma } from '../../generated/prisma/client.js';
 
 interface OrderItem {
   ticketTierId: string;
@@ -162,6 +168,9 @@ export class OrdersService {
         },
       });
     } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpException("Couldn't update order", HttpStatus.NOT_MODIFIED)
+      }
       throw err;
     }
   }
