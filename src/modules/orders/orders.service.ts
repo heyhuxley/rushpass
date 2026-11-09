@@ -3,6 +3,7 @@ import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { StripeClient } from '../../infra/payments/stripe.client.js';
+import { Stripe } from 'stripe';
 
 interface OrderItem {
   ticketTierId: string;
@@ -26,107 +27,111 @@ export class OrdersService {
 
     return `${prefix}-${timestamp}-${randomStr}`.toUpperCase();
   }
-  
+
   async create(userId: string, orderItems: CreateOrderDto) {
     const ids = orderItems.items.map((item) => item.ticketTierId);
-    
-    const { order, event, tiers, reference } = await this.prisma.$transaction(async (tx) => {
-      const tiers = await tx.ticketTier.findMany({
-        where: {
-          id: { in: ids },
-        },
-        include: {
-          event: true,
-        },
-      });
-      
-      if (tiers.length !== new Set(ids).size) {
-        throw new BadRequestException('One or more ticket tiers do not exist.');
-      }
-      
-      const event = tiers[0].event;
-      if (tiers.some((tier) => tier.eventId !== event.id)) {
-        throw new BadRequestException(
-          'All ticket tiers must belong to the same event.',
-        );
-      }
-      
-      if (event.status !== 'PUBLISHED' || event.startTime <= new Date()) {
-        throw new BadRequestException(
-          'This event is not available for booking',
-        );
-      }
-      
-      const byId = new Map(tiers.map((tier) => [tier.id, tier]));
-      let totalPrice = 0;
-      
-      const itemsToCreate = await Promise.all(
-        orderItems.items.map(async ({ ticketTierId, quantity }) => {
-          const tier = byId.get(ticketTierId);
-          if (!tier) {
-            throw new BadRequestException('Invalid ticket tier specified.');
-          }
-          
-          const unitPrice = Number(tier.price);
-          totalPrice += unitPrice * quantity; // Fixed syntax error here too!
-          
-          const updated = await tx.ticketTier.updateMany({
-            where: {
-              id: ticketTierId,
-              available: {
-                gte: quantity,
+
+    const { order, event, tiers, reference } = await this.prisma.$transaction(
+      async (tx) => {
+        const tiers = await tx.ticketTier.findMany({
+          where: {
+            id: { in: ids },
+          },
+          include: {
+            event: true,
+          },
+        });
+
+        if (tiers.length !== new Set(ids).size) {
+          throw new BadRequestException(
+            'One or more ticket tiers do not exist.',
+          );
+        }
+
+        const event = tiers[0].event;
+        if (tiers.some((tier) => tier.eventId !== event.id)) {
+          throw new BadRequestException(
+            'All ticket tiers must belong to the same event.',
+          );
+        }
+
+        if (event.status !== 'PUBLISHED' || event.startTime <= new Date()) {
+          throw new BadRequestException(
+            'This event is not available for booking',
+          );
+        }
+
+        const byId = new Map(tiers.map((tier) => [tier.id, tier]));
+        let totalPrice = 0;
+
+        const itemsToCreate = await Promise.all(
+          orderItems.items.map(async ({ ticketTierId, quantity }) => {
+            const tier = byId.get(ticketTierId);
+            if (!tier) {
+              throw new BadRequestException('Invalid ticket tier specified.');
+            }
+
+            const unitPrice = Number(tier.price);
+            totalPrice += unitPrice * quantity; // Fixed syntax error here too!
+
+            const updated = await tx.ticketTier.updateMany({
+              where: {
+                id: ticketTierId,
+                available: {
+                  gte: quantity,
+                },
               },
-            },
-            data: {
-              available: {
-                decrement: quantity,
+              data: {
+                available: {
+                  decrement: quantity,
+                },
               },
-            },
-          });
-          
-          if (updated.count === 0) {
-            throw new BadRequestException(
-              `Not enough tickets available for tier ${tier.name}.`,
-            );
-          }
-          
-          return { ticketTierId, quantity, unitPrice };
-        }),
-      );
-      
-      const reference = this.generateRef();
-      
-      const order = await tx.order.create({
-        data: {
-          userId,
-          totalPrice,
-          reference,
-          expiresAt: event.startTime,
-          orderItems: {
-            createMany: {
-              data: itemsToCreate,
+            });
+
+            if (updated.count === 0) {
+              throw new BadRequestException(
+                `Not enough tickets available for tier ${tier.name}.`,
+              );
+            }
+
+            return { ticketTierId, quantity, unitPrice };
+          }),
+        );
+
+        const reference = this.generateRef();
+
+        const order = await tx.order.create({
+          data: {
+            userId,
+            totalPrice,
+            reference,
+            expiresAt: event.startTime,
+            orderItems: {
+              createMany: {
+                data: itemsToCreate,
+              },
             },
           },
-        },
-        include: {
-          orderItems: true,
-        },
-      });
-      
-      return { order, event, tiers, totalPrice, reference };
-    });
-    
+          include: {
+            orderItems: true,
+          },
+        });
+
+        return { order, event, tiers, totalPrice, reference };
+      },
+    );
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
     });
-    
+
     if (!user) {
       throw new BadRequestException('User not found.');
     }
-    
+
     const appUrl = 'http://localhost:3000/api';
-    
+
     const { url } = await this.stripe.createCheckoutSession({
       orderId: order.id,
       reference: reference,
@@ -140,11 +145,13 @@ export class OrdersService {
       successUrl: `${appUrl}/orders/${order.id}/status?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl}/orders/${order.id}/cancelled`,
     });
-    
+
     return { orderId: order.id, checkoutUrl: url };
   }
-  
-  
+
+  async getOrderStatus(orderId: string, sessionId: string): Promise<Stripe.Checkout.Session | undefined> {
+    return await this.stripe.fulfillCheckout(sessionId)
+  };
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async cancelPendingOrders() {
