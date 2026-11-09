@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PaystackClient } from './paystack.client.js';
+import { StripeClient } from './stripe.client.js';
 
-describe('PaystackClient', () => {
-  let provider: PaystackClient;
+describe('StripeClient', () => {
+  let provider: StripeClient;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PaystackClient],
+      providers: [StripeClient],
     }).compile();
 
-    provider = module.get<PaystackClient>(PaystackClient);
+    provider = module.get<StripeClient>(StripeClient);
   });
 
   it('should be defined', () => {

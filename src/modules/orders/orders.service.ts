@@ -112,7 +112,7 @@ export class OrdersService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async cancelPendingOrders() {
-    const result = await this.prisma.order.updateMany({
+    return await this.prisma.order.updateMany({
       where: {
         expiresAt: {
           gte: new Date(),

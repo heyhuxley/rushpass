@@ -6,14 +6,10 @@ import {
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { Prisma, User } from '../../generated/prisma/client.js';
 import { UserRT } from './users.types.js';
-import { PaystackClient } from '../../infra/payments/paystack.client.js';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly paystack: PaystackClient,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async user(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
@@ -106,17 +102,17 @@ export class UsersService {
     });
   }
 
-  async testPay() {
-    return await this.paystack.initialize({
-      email: 'olakunle@test.com',
-      amountKobo: 10000,
-      reference: 'test-ref-1234567891',
-    });
-  }
-
-  async testVer(reference: string) {
-    return await this.paystack.verify({
-      reference,
-    });
-  }
+  // async testPay() {
+  //   return await this.paystack.initialize({
+  //     email: 'olakunle@test.com',
+  //     amountKobo: 10000,
+  //     reference: 'test-ref-1234567891',
+  //   });
+  // }
+  //
+  // async testVer(reference: string) {
+  //   return await this.paystack.verify({
+  //     reference,
+  //   });
+  // }
 }

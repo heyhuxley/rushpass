@@ -24,8 +24,9 @@ import { mailTransport } from './mail-transport.js';
 import { EventsModule } from './modules/events/events.module.js';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OrdersModule } from './modules/orders/orders.module.js';
-import { PaystackClient } from './infra/payments/paystack.client.js';
-import { PaystackModule } from './infra/payments/paystack.module.js';
+import { StripeClient } from './infra/payments/stripe.client.js';
+import { PaymentsModule } from './stripe/infra/payments.module.js';
+import { StripeModule } from './infra/payments/stripe.module.js';
 
 @Module({
   imports: [
@@ -39,8 +40,7 @@ import { PaystackModule } from './infra/payments/paystack.module.js';
         JWT_SECRET: z.string().min(64),
         JWT_ISSUER: z.string().startsWith('http'),
         HMAC_SECRET: z.string().min(10),
-        PAYSTACK_BASE_URL: z.string().startsWith('https'),
-        PAYSTACK_SECRET_KEY: z.string().min(36),
+        STRIPE_SECRET_KEY: z.string().min(26),
       }),
     }),
     AuthenticationModule.forRootAsync({
@@ -80,10 +80,11 @@ import { PaystackModule } from './infra/payments/paystack.module.js';
     EventsModule,
     ScheduleModule.forRoot(),
     OrdersModule,
-    PaystackModule,
+    PaymentsModule,
+    StripeModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailVerificationMail, PaystackClient],
+  providers: [AppService, EmailVerificationMail, StripeClient],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {

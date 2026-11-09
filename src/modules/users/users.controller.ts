@@ -37,15 +37,15 @@ export class UsersController {
     return user ?? [];
   }
 
-  @Get('test-pay')
-  testPay() {
-    return this.usersService.testPay();
-  }
-
-  @Get('test-ver/:ref')
-  testVer(@Param('ref') ref: string) {
-    return this.usersService.testVer(ref);
-  }
+  // @Get('test-pay')
+  // testPay() {
+  //   return this.usersService.testPay();
+  // }
+  //
+  // @Get('test-ver/:ref')
+  // testVer(@Param('ref') ref: string) {
+  //   return this.usersService.testVer(ref);
+  // }
 
   @Patch('me')
   async update(
