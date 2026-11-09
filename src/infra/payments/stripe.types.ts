@@ -13,5 +13,5 @@ export interface CreateCheckoutInput {
   lines: CheckoutLine[];
   successUrl: string;
   cancelUrl: string;
-  expiresAt: Date;
+  // expiresAt: Date;
 }

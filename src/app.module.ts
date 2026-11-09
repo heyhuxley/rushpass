@@ -51,7 +51,7 @@ import { StripeModule } from './infra/payments/stripe.module.js';
           key: config.getOrThrow<string>('JWT_SECRET'),
           issuer: config.getOrThrow<string>('JWT_ISSUER'),
           audience: 'rushpass',
-          ttl: '15m',
+          ttl: '1d',
         },
         refreshToken: false,
       }),

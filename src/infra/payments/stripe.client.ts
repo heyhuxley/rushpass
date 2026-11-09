@@ -45,7 +45,7 @@ export class StripeClient {
           metadata: { orderId: input.orderId },
           success_url: input.successUrl,
           cancel_url: input.cancelUrl,
-          expires_at: Math.floor(input.expiresAt.getTime() / 1000),
+          // expires_at: Math.floor(input.expiresAt.getTime() / 1000),
         },
         { idempotencyKey: input.reference },
       );
@@ -55,6 +55,8 @@ export class StripeClient {
       if (err instanceof Stripe.errors.StripeError) {
         switch (err.type) {
           case 'StripeInvalidRequestError':
+            console.log(err);
+
             throw new BadRequestException('Invalid parameters supplied');
 
           case 'StripeIdempotencyError':
