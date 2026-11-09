@@ -3,7 +3,6 @@ import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { StripeClient } from '../../infra/payments/stripe.client.js';
-import { Stripe } from 'stripe';
 
 interface OrderItem {
   ticketTierId: string;
@@ -149,9 +148,23 @@ export class OrdersService {
     return { orderId: order.id, checkoutUrl: url };
   }
 
-  async getOrderStatus(orderId: string, sessionId: string): Promise<Stripe.Checkout.Session | undefined> {
-    return await this.stripe.fulfillCheckout(sessionId)
-  };
+  async getOrderStatus(orderId: string, sessionId: string) {
+    const status = await this.stripe.fulfillCheckout(sessionId);
+    if (!status) throw new BadRequestException('Order not confirmed.');
+    try {
+      return await this.prisma.order.update({
+        where: {
+          id: orderId,
+          paidAt: null,
+        },
+        data: {
+          paidAt: new Date(),
+        },
+      });
+    } catch (err) {
+      throw err;
+    }
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async cancelPendingOrders() {

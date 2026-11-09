@@ -87,9 +87,21 @@ export class StripeClient {
   async fulfillCheckout(
     sessionId: string,
   ): Promise<Stripe.Checkout.Session | undefined> {
-    return await this.stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items'],
-    });
+    try {
+      return await this.stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['line_items'],
+      });
+    } catch (err) {
+      if (err instanceof Stripe.errors.StripeError) {
+        if (err.type === 'StripeInvalidRequestError')
+          throw new BadRequestException('Invalid session signature');
+        throw new HttpException(err.message, err.statusCode || 500, {
+          cause: err.cause,
+          errorCode: err.code,
+        });
+      }
+      throw err;
+    }
   }
 
   constructWebhookEvent(rawBody: Buffer, signature: string | undefined) {

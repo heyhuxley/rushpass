@@ -10,7 +10,7 @@ import {
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { Authenticate, CurrentUser, Public } from '@nestjs/authentication';
-import { Stripe } from 'stripe';
+import { ResponseMessage } from '../../common/decorators/response-message.decorator.js';
 
 @Controller('orders')
 export class OrdersController {
@@ -26,11 +26,12 @@ export class OrdersController {
   }
 
   @Public()
+  @ResponseMessage('Order status confirmed')
   @Get(':id/status')
   getOrderStatus(
     @Param('id', new ParseUUIDPipe()) orderId: string,
     @Query('session_id') sessionId: string,
-  ): Promise<Stripe.Checkout.Session | undefined> {
-    return this.ordersService.getOrderStatus(orderId, sessionId)
+  ) {
+    return this.ordersService.getOrderStatus(orderId, sessionId);
   }
 }
